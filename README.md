@@ -15,3 +15,6 @@ cd PriceGaugeMonitor
 
 #Run the app (requires Flask and Pandas)
 Python app.py
+'''
+
+![Sample](example/Sample.PNG)
