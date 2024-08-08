@@ -22,9 +22,9 @@
             return new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: [`${label}: ${value}`],
+                    labels: [`${label}: ${value !== null ? value.toFixed(2) : 'N/A'}`],
                     datasets: [{
-                        data: [value, maxValue - value],
+                        data: [value !== null ? value : 0, value !== null ? maxValue - value : maxValue],
                         backgroundColor: ['#4CAF50', '#E0E0E0'],
                     }]
                 },
@@ -36,7 +36,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return `${label}: ${value}`;
+                                    return `${label}: ${value !== null ? value.toFixed(2) : 'N/A'}`;
                                 }
                             }
                         },
@@ -76,6 +76,11 @@
             const prices = await fetchPrices();
             const chartsDiv = document.getElementById('charts');
             for (const [symbol, price] of Object.entries(prices)) {
+                if (price === null) {
+                    console.log(`Skipping ${symbol} due to null value`);
+                    continue;
+                }
+
                 // Create a container for each chart
                 const chartContainer = document.createElement('div');
                 chartContainer.style.width = '200px';
@@ -93,14 +98,15 @@
                 
                 // Define minimum and maximum values for the gauge chart
                 const minValue = 0;
-                const maxValue = 200;  // Adjust this based on your expected price range
+                const maxValue = 250;  // Adjust this based on your expected price range
                 
                 // Create the gauge chart
                 createGaugeChart(canvas, symbol, price, minValue, maxValue);
             }
         }
 
-        createCharts();
+        // Ensure the charts are created after the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', createCharts);
     </script>
 </body>
 </html>
