@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prices</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Stock Prices</h1>
+    <div id="charts"></div>
+
+    <script>
+        async function fetchPrices() {
+            const response = await fetch('/prices');
+            const data = await response.json();
+            console.log("Fetched Prices:", data); // Debug: Log fetched prices
+            return data;
+        }
+
+        function createGaugeChart(ctx, label, value, minValue, maxValue) {
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [`${label}: ${value}`],
+                    datasets: [{
+                        data: [value, maxValue - value],
+                        backgroundColor: ['#4CAF50', '#E0E0E0'],
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: 270,
+                    cutout: '80%',
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map(function(label, index) {
+                                            return {
+                                                text: label,
+                                                fillStyle: data.datasets[0].backgroundColor[index],
+                                                hidden: false,
+                                                lineCap: 'butt',
+                                                lineDash: [],
+                                                lineDashOffset: 0,
+                                                lineJoin: 'miter',
+                                                lineWidth: 1,
+                                                strokeStyle: '#000000',
+                                                pointStyle: 'circle',
+                                                rotation: 0
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function createCharts() {
+            const prices = await fetchPrices();
+            const chartsDiv = document.getElementById('charts');
+            for (const [symbol, price] of Object.entries(prices)) {
+                // Create a container for each chart
+                const chartContainer = document.createElement('div');
+                chartContainer.style.width = '200px';
+                chartContainer.style.height = '200px';
+                chartContainer.style.display = 'inline-block';
+                chartContainer.style.margin = '10px';
+                
+                // Create a canvas element for the chart
+                const canvas = document.createElement('canvas');
+                chartContainer.appendChild(canvas);
+                chartsDiv.appendChild(chartContainer);
+                
+                // Debug: Log chart creation
+                console.log(`Creating chart for ${symbol} with price ${price}`);
+                
+                // Define minimum and maximum values for the gauge chart
+                const minValue = 0;
+                const maxValue = 200;  // Adjust this based on your expected price range
+                
+                // Create the gauge chart
+                createGaugeChart(canvas, symbol, price, minValue, maxValue);
+            }
+        }
+
+        createCharts();
+    </script>
+</body>
+</html>
